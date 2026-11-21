@@ -1,0 +1,30 @@
+---
+- name: Configure a basic Nginx web server
+  hosts: web
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.dnf:
+        name: "{{ nginx_package_name }}"
+        state: present
+
+    - name: Start and enable Nginx
+      ansible.builtin.service:
+        name: "{{ nginx_service_name }}"
+        state: started
+        enabled: true
+
+    - name: Deploy the home page
+      ansible.builtin.copy:
+        dest: "{{ nginx_document_root }}/index.html"
+        content: |
+          <!doctype html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>{{ web_page_title }}</title></head>
+          <body><h1>{{ web_page_title }}</h1><p>Deployed with Ansible.</p></body>
+          </html>
+        owner: root
+        group: root
+        mode: "0644"
