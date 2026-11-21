@@ -1,0 +1,8 @@
+# SSH private keys and credentials
+*.pem
+*.key
+.aws/
+.aws-credentials
+
+# Ansible generated files
+*.retry
