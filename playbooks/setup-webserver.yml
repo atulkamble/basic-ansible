@@ -1,12 +1,12 @@
 ---
-- name: Configure a basic Nginx web server
+- name: Configure a basic Nginx web server on Amazon Linux
   hosts: web
   become: true
   gather_facts: true
 
   tasks:
     - name: Install Nginx
-      ansible.builtin.dnf:
+      ansible.builtin.package:
         name: "{{ nginx_package_name }}"
         state: present
 
