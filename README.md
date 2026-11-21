@@ -1,6 +1,6 @@
 # Basic Ansible Configuration
 
-A beginner-friendly Ansible project for connecting to Linux servers, checking connectivity, and installing a simple Nginx web server. The examples target **Amazon Linux 2023**.
+A beginner-friendly Ansible project for managing **Amazon Linux 2 and Amazon Linux 2023** EC2 instances. It includes SSH inventory configuration, a connectivity check, and a basic Nginx setup.
 
 ## Project structure
 
@@ -19,9 +19,9 @@ basic-ansible/
 
 ## Requirements
 
-- Ansible installed on the control machine (Linux, macOS, or WSL).
-- One reachable Amazon Linux 2023 server.
-- SSH access to the server and a private key.
+- Ansible installed on your control machine (Linux, macOS, or WSL).
+- A reachable Amazon Linux 2 or Amazon Linux 2023 EC2 instance.
+- SSH access and the matching EC2 private key.
 
 Install Ansible on Ubuntu/Debian:
 
@@ -36,21 +36,21 @@ On macOS with Homebrew:
 brew install ansible
 ```
 
-## Configure the inventory
+## Configure SSH access
 
-Edit `inventory/hosts.ini` and replace `YOUR_SERVER_PUBLIC_IP` with the server's public IP address. The sample uses the default Amazon Linux user `ec2-user`.
+Edit `inventory/hosts.ini` and replace `YOUR_SERVER_PUBLIC_IP` with your EC2 instance's public IP or DNS name. The inventory uses the default Amazon Linux SSH user, `ec2-user`.
 
-Place your SSH private key at `aws/ansible.pem`, or change `private_key_file` in `ansible.cfg` to the correct path. Set restrictive permissions:
+Place your private key at `aws/ansible.pem`, or update `private_key_file` in `ansible.cfg` to point to the key's actual location. Set restrictive permissions:
 
 ```bash
 chmod 400 aws/ansible.pem
 ```
 
-The private key is excluded from Git. Never commit private keys, passwords, or cloud credentials.
+The key is excluded from Git. Never commit private keys, passwords, or cloud credentials. In the EC2 security group, allow SSH (TCP 22) from your control machine.
 
-## Check the configuration and connectivity
+## Verify connectivity
 
-Run these commands from the repository root:
+Run from the repository root:
 
 ```bash
 ansible --version
@@ -59,17 +59,21 @@ ansible all -m ansible.builtin.ping
 ansible-playbook playbooks/ping.yml
 ```
 
-A successful ping module result includes `"ping": "pong"`. This confirms Ansible can connect over SSH; it is not an ICMP network ping.
+A successful result includes `"ping": "pong"`. The Ansible ping module verifies SSH and Python connectivity; it is not an ICMP network ping.
 
 ## Install and start Nginx
 
-Review the target hosts, then run:
+The web server playbook uses Ansible's OS-aware package module, so it works with both Amazon Linux 2 and Amazon Linux 2023.
 
 ```bash
 ansible-playbook playbooks/setup-webserver.yml --limit web
 ```
 
-The playbook installs Nginx, enables and starts the service, and writes a small page. Open `http://YOUR_SERVER_PUBLIC_IP` to view it. Ensure the server security group/firewall allows inbound TCP port 80.
+It installs Nginx, enables and starts the service, then deploys a sample home page. Allow inbound HTTP (TCP 80) in the EC2 security group and visit:
+
+```text
+http://YOUR_SERVER_PUBLIC_IP
+```
 
 ## Useful commands
 
@@ -83,12 +87,12 @@ ansible web -m ansible.builtin.command -a "uname -a"
 # Check playbook syntax
 ansible-playbook --syntax-check playbooks/setup-webserver.yml
 
-# Preview supported changes (where modules support check mode)
+# Preview supported changes
 ansible-playbook --check playbooks/setup-webserver.yml
 ```
 
 ## Notes
 
-- Keep the inventory and SSH key path specific to your environment.
-- The web server example uses Amazon Linux 2023's Nginx package and document root.
-- SSH access (usually TCP port 22) must be allowed from the control machine.
+- Keep the inventory IP/DNS name and SSH key path specific to your environment.
+- Amazon Linux uses `ec2-user` by default; change it if your instance was configured differently.
+- The web page is written to the standard Nginx document root, `/usr/share/nginx/html`.
